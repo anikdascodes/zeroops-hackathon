@@ -32,6 +32,15 @@ console.log('Preparing dist/ for deploy...');
 rmRecursive(distDir);
 copyRecursive(standaloneDir, distDir);
 
+// Next.js standalone does NOT ship static assets automatically when using a
+// custom distDir. Copy build/static into the standalone tree so the server
+// can serve JS/CSS chunks (otherwise the page is an unstyled, non-hydrated
+// HTML shell). Also copy public/ if present.
+copyRecursive(path.join(webDir, 'build', 'static'), path.join(distDir, 'build', 'static'));
+if (fs.existsSync(path.join(webDir, 'public'))) {
+  copyRecursive(path.join(webDir, 'public'), path.join(distDir, 'public'));
+}
+
 for (const [name, file] of [
   ['migrate.cjs', 'migrate.js'],
   ['daily.cjs', 'daily.js'],
