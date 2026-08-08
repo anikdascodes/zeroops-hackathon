@@ -1,0 +1,42 @@
+{
+  "name": "zerops-tutor",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "node scripts/build.js",
+    "start": "next start",
+    "lint": "next lint",
+    "db:push": "drizzle-kit push",
+    "db:migrate": "node scripts/migrate.js",
+    "test": "vitest run --exclude tests/build.test.ts",
+    "test:build": "vitest run tests/build.test.ts"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.240",
+    "@remotion/player": "4.0.240",
+    "drizzle-orm": "^0.38.4",
+    "ioredis": "^5.4.2",
+    "next": "15.1.6",
+    "pg": "^8.13.1",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "remotion": "4.0.240",
+    "zod": "^3.22.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.7",
+    "@types/pg": "^8.11.10",
+    "@types/react": "^19.0.7",
+    "@types/react-dom": "^19.0.3",
+    "autoprefixer": "^10.4.20",
+    "drizzle-kit": "^0.30.2",
+    "esbuild": "^0.28.1",
+    "eslint": "^9.18.0",
+    "eslint-config-next": "15.1.6",
+    "postcss": "^8.5.1",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.7.3",
+    "vitest": "^4.1.10"
+  }
+}

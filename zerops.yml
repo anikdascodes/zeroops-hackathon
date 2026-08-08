@@ -1,0 +1,35 @@
+zerops:
+  - setup: app
+    build:
+      base: nodejs@24
+      os: alpine
+      buildCommands:
+        - cd web && npm ci --legacy-peer-deps && npm run build
+        - cd web && npm test
+      deployFiles:
+        - dist
+      cache:
+        - web/node_modules
+    deploy:
+      readinessCheck:
+        httpGet:
+          port: 3000
+          path: /api/health
+        failureTimeout: 60s
+        retryPeriod: 10s
+    run:
+      base: nodejs@24
+      os: alpine
+      initCommands:
+        - node dist/migrate.cjs
+      start: node dist/server.js
+      ports:
+        - port: 3000
+          httpSupport: true
+      crontab:
+        - command: node dist/daily.cjs
+          timing: "0 0 * * *"
+          allContainers: false
+      envVariables:
+        DATABASE_URL: ${db_connectionString}
+        CACHE_URL: ${cache_connectionString}

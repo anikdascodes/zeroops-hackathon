@@ -1,0 +1,31 @@
+# Secrets
+opencode.json
+.env
+.env.local
+
+# Node
+web/node_modules
+web/.next
+web/out
+web/dist
+web/build
+dist
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode
+.idea
+
+# ZCP
+.zcp
+
+# Docs are large but tracked separately; exclude from deploy artifact
+# (we keep them in the repo for the submission, but not deployed)
+docs

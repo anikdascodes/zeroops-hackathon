@@ -1,0 +1,11 @@
+# Exclude from deploy artifact only — these paths are committed to git but not shipped to runtime
+web/node_modules
+web/.next
+web/out
+web/dist
+.next
+*.log
+.vscode
+.idea
+.zcp
+docs
