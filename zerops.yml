@@ -33,3 +33,4 @@ zerops:
       envVariables:
         DATABASE_URL: ${db_connectionString}
         CACHE_URL: ${cache_connectionString}
+        GEMINI_API_KEY: ${GEMINI_API_KEY}
