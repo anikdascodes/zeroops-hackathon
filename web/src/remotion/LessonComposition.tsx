@@ -4,6 +4,9 @@ import {
   AbsoluteFill,
   interpolate,
   spring,
+  Sequence,
+  Audio,
+  staticFile,
 } from 'remotion';
 import type { LessonScene } from '@/types/lesson';
 
@@ -318,6 +321,14 @@ export default function LessonComposition({
 
   return (
     <AbsoluteFill style={{ background: bgGrad(hueA, hueB) }}>
+      {/* Per-scene narration audio — plays in sync with the visual timeline */}
+      {scenes.map((s, i) =>
+        s.audioUrl ? (
+          <Sequence key={`audio-${i}`} from={sceneStarts[i]} durationInFrames={s.durationInFrames + EXIT_FRAMES}>
+            <Audio src={staticFile(s.audioUrl.replace(/^\//, ''))} />
+          </Sequence>
+        ) : null
+      )}
       <ParticlesLayer particles={particles} frame={frame} accent={accent} />
       <div className="absolute top-10 left-16 right-16 flex items-center justify-between z-10">
         <div className="text-xs tracking-[0.4em] uppercase text-zinc-500">Zerops Academy</div>

@@ -3,6 +3,8 @@ export interface LessonScene {
   text: string;
   code?: string;
   durationInFrames: number;
+  /** Narration audio URL for this scene (on-the-fly lessons) */
+  audioUrl?: string;
 }
 
 export interface Lesson {

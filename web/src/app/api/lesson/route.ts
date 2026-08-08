@@ -4,6 +4,7 @@ import { lessons } from '@/db/schema';
 import { Lesson, LessonScene, QuizQuestion } from '@/types/lesson';
 import { curatedLessons, findCuratedLesson } from '@/content/lessons';
 import { cacheGet, cacheSet } from '@/lib/cache';
+import { narrateScenes } from '@/lib/tts';
 import { eq } from 'drizzle-orm';
 
 function curatedToLesson(cl: (typeof curatedLessons)[number]): Lesson {
@@ -21,37 +22,49 @@ function attachQuiz(cl: (typeof curatedLessons)[number]): { quiz?: QuizQuestion[
   return { quiz: cl.quiz };
 }
 
-async function generateWithGemini(query: string): Promise<Lesson | null> {
-  const key = process.env.GEMINI_API_KEY;
-  if (!key || key === 'PLACEHOLDER_WILL_UPDATE_LATER') return null;
+/**
+ * Generate a structured lesson via Groq LLM (llama-3.3-70b-versatile).
+ * Groq's API is OpenAI-compatible — same chat completions shape.
+ */
+async function generateWithGroq(query: string): Promise<Lesson | null> {
+  const key = process.env.GROQ_API_KEY;
+  if (!key) return null;
 
   try {
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [
-            {
-              role: 'user',
-              parts: [
-                {
-                  text: `You are an expert on Zerops (zerops.io). A user asks: "${query}". Create a short interactive lesson with 2-4 scenes. Each scene has a title (max 5 words), explanation text (max 40 words), and an optional code/snippet field. Return ONLY valid JSON:
+    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${key}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'llama-3.3-70b-versatile',
+        temperature: 0.7,
+        max_tokens: 1200,
+        messages: [
+          {
+            role: 'system',
+            content:
+              'You are an expert on Zerops (zerops.io), a developer-first deployment platform. Create short interactive lessons. Return ONLY valid JSON, no markdown fences, no preamble.',
+          },
+          {
+            role: 'user',
+            content: `A user asks: "${query}". Create a lesson with 2-4 scenes. Return JSON:
 {"title":"...","scenes":[{"title":"...","text":"...","code":"..."}]}
-Rules: titles <=5 words, text <=40 words, keep code short (<150 chars), no markdown fences. If not a Zerops/cloud question, return a lesson titled "Not a Zerops topic" explaining we cover Zerops.`,
-                },
-              ],
-            },
-          ],
-        }),
-      }
-    );
+Rules: titles max 5 words, text max 40 words, code optional and short (<150 chars). If not a Zerops/cloud topic, return title "Not a Zerops topic".`,
+          },
+        ],
+      }),
+    });
 
-    if (!res.ok) return null;
+    if (!res.ok) {
+      console.error('Groq LLM error:', res.status, await res.text().catch(() => ''));
+      return null;
+    }
+
     const data = await res.json();
-    const text: string = data.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    const content: string = data.choices?.[0]?.message?.content ?? '';
+    const jsonMatch = content.match(/\{[\s\S]*\}/);
     if (!jsonMatch) return null;
     const parsed = JSON.parse(jsonMatch[0]);
     const scenes: LessonScene[] = (parsed.scenes || []).map((s: any) => ({
@@ -69,7 +82,7 @@ Rules: titles <=5 words, text <=40 words, keep code short (<150 chars), no markd
       createdAt: new Date().toISOString(),
     };
   } catch (e) {
-    console.error('Gemini error', e);
+    console.error('Groq LLM error', e);
     return null;
   }
 }
@@ -153,9 +166,16 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ...lesson, ...attachQuiz(curated), slug: curated.slug });
   }
 
-  // 2) AI generation for anything else Zerops-related
-  const generated = await generateWithGemini(q);
+  // 2) AI generation via Groq LLM for anything else
+  const generated = await generateWithGroq(q);
   let lesson = generated ?? fallbackLesson(q);
+
+  // 3) Generate TTS narration for each scene via Groq TTS (parallel)
+  try {
+    lesson.scenes = await narrateScenes(lesson.scenes, lesson.id);
+  } catch (e) {
+    console.error('TTS error', e);
+  }
 
   try {
     const inserted = await db
