@@ -99,14 +99,21 @@ async function renderAll() {
     return;
   }
 
-  // First render needs a browser binary; ensure it is downloaded/available.
+  if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true });
+
+  // Check if all videos already exist — if so, skip the entire render pipeline
+  const allExist = lessons.every((lesson) => fs.existsSync(path.join(outDir, `${lesson.slug}.mp4`)));
+  if (allExist) {
+    console.log('render-videos: all videos already exist, skipping render pipeline entirely');
+    return;
+  }
+
+  // Only download Chrome if we actually need to render
   try {
     await ensureBrowser();
   } catch (e) {
     console.error('render-videos: could not ensure browser:', e.message);
   }
-
-  if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true });
 
   // Phase 1: Generate ALL TTS narration first (serialized to avoid rate limits)
   console.log('render-videos: === Phase 1: generating narration ===');
