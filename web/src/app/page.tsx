@@ -73,59 +73,77 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen p-6 md:p-12">
+    <main className="min-h-screen px-6 md:px-12 py-10 md:py-16">
       <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-10">
-          <p className="text-xs tracking-[0.35em] uppercase text-zinc-500 mb-3">Zerops Academy</p>
-          <h1 className="text-5xl md:text-6xl font-bold mb-4 bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
-            Learn Cloud. Deploy Fast.
-          </h1>
-          <p className="text-lg text-zinc-400 max-w-2xl mx-auto">
-            Ask anything about Zerops — or pick a curated lesson — and get an animated interactive lesson with a quiz.
-            Every question is cached in Valkey, every score lands on a Postgres-backed leaderboard.
-          </p>
+        {/* Header — asymmetric, no centered blob */}
+        <header className="mb-12">
+          <div className="flex items-center gap-3 mb-8">
+            <div className="w-2 h-2 bg-ember" />
+            <span className="font-mono text-xs text-dust uppercase tracking-[0.2em]">zerops academy</span>
+          </div>
+          <div className="grid md:grid-cols-[1fr_auto] gap-8 items-end">
+            <h1 className="font-display text-5xl md:text-7xl font-bold tracking-tight text-bone leading-[0.95]">
+              Learn cloud.<br />
+              <span className="text-ember">Deploy fast.</span>
+            </h1>
+            <p className="font-body text-dust text-base max-w-xs md:text-right">
+              Animated lessons on Zerops, each with a quiz. Scores land on a live Postgres leaderboard, cached in Valkey.
+            </p>
+          </div>
+        </header>
+
+        {/* Terminal-prompt search */}
+        <div className="mb-4">
+          <QuestionForm onSubmit={handleSubmit} loading={loading} />
         </div>
 
-        <QuestionForm onSubmit={handleSubmit} loading={loading} />
+        {error && <p className="text-rust font-body text-sm mt-4">{error}</p>}
 
-        {error && <p className="text-red-400 text-center mt-6">{error}</p>}
-
+        {/* Active lesson */}
         {lesson && (
-          <section className="mt-14 grid lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2 space-y-8">
+          <section className="mt-12 grid lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2 space-y-6">
               <button
                 onClick={() => {
                   setLesson(null);
                   setError('');
                   document.getElementById('course-library')?.scrollIntoView({ behavior: 'smooth' });
                 }}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white transition text-sm font-medium"
+                className="inline-flex items-center gap-2 text-dust hover:text-bone transition-colors text-sm font-mono"
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M19 12H5" />
                   <path d="M12 19l-7-7 7-7" />
                 </svg>
-                Back
+                back
               </button>
+
               <div>
-                <h2 className="text-3xl font-semibold text-white">{lesson.title}</h2>
-                {lesson.tagline && <p className="text-zinc-500 mt-1">{lesson.tagline}</p>}
+                <h2 className="font-display text-3xl font-bold text-bone tracking-tight">{lesson.title}</h2>
+                {lesson.tagline && <p className="text-dust mt-1 font-body">{lesson.tagline}</p>}
               </div>
+
               <LessonPlayer
                 scenes={lesson.scenes}
                 lessonTitle={lesson.title}
                 slug={lesson.slug ?? lesson.id}
                 videoUrl={lesson.videoUrl}
               />
-              <div className="bg-zinc-900 rounded-xl p-6 border border-zinc-800">
-                <h3 className="text-lg font-semibold mb-4 text-zinc-200">Lesson Script</h3>
+
+              <div className="bg-coal border border-ash p-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <span className="font-mono text-xs text-dust uppercase tracking-wider">transcript</span>
+                  <div className="h-px flex-1 bg-ash/60" />
+                </div>
                 <div className="space-y-4">
                   {lesson.scenes.map((scene, i) => (
-                    <div key={i} className="border-l-2 border-blue-500 pl-4">
-                      <p className="font-semibold text-blue-400">{i + 1}. {scene.title}</p>
-                      <p className="text-zinc-300 mt-1">{scene.text}</p>
+                    <div key={i} className="border-l-2 border-ember/40 pl-4">
+                      <p className="font-display font-bold text-sm text-ember mb-1">
+                        {String(i + 1).padStart(2, '0')} {scene.title}
+                      </p>
+                      <p className="text-dust font-body text-sm leading-relaxed">{scene.text}</p>
                       {scene.code && (
-                        <pre className="mt-2 bg-zinc-950 p-3 rounded text-sm font-mono text-green-400 overflow-x-auto">
+                        <pre className="mt-2 bg-ink p-3 border border-ash/60 text-xs font-mono text-moss overflow-x-auto">
                           {scene.code}
                         </pre>
                       )}
@@ -133,47 +151,75 @@ export default function Home() {
                   ))}
                 </div>
               </div>
+
               {lesson.quiz && <Quiz questions={lesson.quiz} lessonId={lesson.slug ?? lesson.id} />}
             </div>
+
             <aside className="space-y-6">
               <Leaderboard />
             </aside>
           </section>
         )}
 
-        <section id="course-library" className="mt-16">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-semibold text-white">Course Library</h2>
-            <span className="text-sm text-zinc-500">{library.length} lessons</span>
+        {/* Course Library — file/package entry aesthetic */}
+        <section id="course-library" className="mt-20">
+          <div className="flex items-end justify-between mb-8">
+            <div>
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-2 h-2 bg-brass" />
+                <span className="font-mono text-xs text-dust uppercase tracking-[0.2em]">curated lessons</span>
+              </div>
+              <h2 className="font-display text-3xl font-bold text-bone tracking-tight">Course Library</h2>
+            </div>
+            <span className="font-mono text-sm text-dust">{library.length} lessons</span>
           </div>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+
+          <div className="grid gap-px bg-ash/30 border border-ash/30 md:grid-cols-2">
             {library.map((item) => (
               <button
                 key={item.id}
                 onClick={() => openCurated(item.slug)}
-                className="text-left p-5 rounded-xl bg-zinc-900 border border-zinc-800 hover:border-blue-500/60 hover:bg-zinc-800/60 transition group"
+                className="text-left bg-coal hover:bg-slag p-5 transition-colors group flex items-start gap-4"
               >
-                <h3 className="font-semibold text-zinc-100 group-hover:text-blue-300 transition">{item.title}</h3>
-                <p className="text-sm text-zinc-500 mt-1 line-clamp-2">{item.tagline}</p>
-                <div className="flex items-center gap-3 mt-4 text-xs text-zinc-500">
-                  <span className="px-2 py-0.5 rounded-full bg-zinc-800">{item.minutes} min</span>
-                  <span className="px-2 py-0.5 rounded-full bg-zinc-800">{item.questions} quiz questions</span>
+                <div className="shrink-0 mt-1">
+                  <div className="w-8 h-8 border border-ash group-hover:border-ember transition-colors flex items-center justify-center">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-dust group-hover:text-ember transition-colors">
+                      <path d="M5 12h14" />
+                      <path d="M12 5l7 7-7 7" />
+                    </svg>
+                  </div>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-mono text-xs text-dust/60 mb-1">{item.slug}</p>
+                  <h3 className="font-display font-bold text-bone group-hover:text-ember transition-colors leading-snug">
+                    {item.title}
+                  </h3>
+                  <p className="text-dust text-sm mt-1 font-body line-clamp-2">{item.tagline}</p>
+                  <div className="flex items-center gap-4 mt-3 font-mono text-xs text-dust/60">
+                    <span>{item.minutes}min</span>
+                    <span>{item.questions}q</span>
+                  </div>
                 </div>
               </button>
             ))}
           </div>
         </section>
 
-        <footer className="text-center text-zinc-600 text-sm mt-16 pb-4">
-          Built on Zerops — Next.js frontend, PostgreSQL database, Valkey cache, cron worker.{' '}
-          <a
-            className="text-zinc-400 underline underline-offset-2 hover:text-blue-400"
-            href="https://github.com"
-            target="_blank"
-            rel="noreferrer"
-          >
-            Source
-          </a>
+        {/* Footer */}
+        <footer className="mt-20 pt-8 border-t border-ash/40">
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <p className="font-mono text-xs text-dust/60">
+              next.js · postgresql · valkey · cron — deployed on zerops
+            </p>
+            <a
+              className="font-mono text-xs text-dust hover:text-ember transition-colors"
+              href="https://github.com/anikdascodes/zeroops-hackathon"
+              target="_blank"
+              rel="noreferrer"
+            >
+              source →
+            </a>
+          </div>
         </footer>
       </div>
     </main>

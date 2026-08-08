@@ -22,7 +22,7 @@ export default function LessonPlayer({
   // at build time). Play it with a native <video> for instant, frameless playback.
   if (videoUrl) {
     return (
-      <div className="rounded-xl overflow-hidden border border-zinc-700 shadow-2xl shadow-purple-500/10 bg-black">
+      <div className="border border-ash bg-ink overflow-hidden">
         <video
           className="w-full aspect-video object-contain"
           src={videoUrl}
@@ -40,7 +40,7 @@ export default function LessonPlayer({
     TITLE_FRAMES + scenes.reduce((acc, s) => acc + s.durationInFrames + EXIT_FRAMES, 0) || 90;
 
   return (
-    <div className="rounded-xl overflow-hidden border border-zinc-700 shadow-2xl shadow-purple-500/10">
+    <div className="border border-ash bg-ink overflow-hidden">
       <Player
         component={LessonComposition as any}
         inputProps={{ scenes, lessonTitle, slug }}

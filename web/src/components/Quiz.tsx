@@ -53,17 +53,17 @@ export function Quiz({ questions, lessonId, onFinish }: QuizProps) {
   }
 
   return (
-    <div className="bg-zinc-900 rounded-xl p-6 border border-zinc-800 mt-8">
+    <div className="bg-coal border border-ash p-6 mt-8">
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-semibold text-white">Quiz</h3>
+        <h3 className="font-display text-lg font-bold text-bone tracking-tight">Check your knowledge</h3>
         {result && (
           <span
-            className={`px-3 py-1 rounded-full text-sm font-semibold ${
+            className={`font-mono text-sm px-2.5 py-1 ${
               result.correct === result.total
-                ? 'bg-green-500/20 text-green-400'
+                ? 'text-moss'
                 : result.correct / result.total >= 0.5
-                  ? 'bg-amber-500/20 text-amber-400'
-                  : 'bg-red-500/20 text-red-400'
+                  ? 'text-brass'
+                  : 'text-rust'
             }`}
           >
             {result.correct}/{result.total}
@@ -75,37 +75,38 @@ export function Quiz({ questions, lessonId, onFinish }: QuizProps) {
         {questions.map((q, i) => {
           const answered = submitted;
           return (
-            <div key={i} className="border-b border-zinc-800 last:border-0 pb-6 last:pb-0">
-              <p className="text-zinc-200 mb-3 font-medium">
-                <span className="text-blue-400 mr-2">{i + 1}.</span>
+            <div key={i} className="border-b border-ash/60 last:border-0 pb-6 last:pb-0">
+              <p className="text-bone mb-3 font-medium">
+                <span className="font-mono text-ember mr-2 text-sm">{String(i + 1).padStart(2, '0')}</span>
                 {q.q}
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {q.options.map((opt, oi) => {
-                  let cls =
-                    answers[i] === oi
-                      ? 'border-blue-500 bg-blue-500/10 text-blue-300'
-                      : 'border-zinc-700 text-zinc-300 hover:border-zinc-500';
+                  let cls = answers[i] === oi
+                    ? 'border-ember bg-ember/10 text-bone'
+                    : 'border-ash text-dust hover:border-dust/60 hover:text-bone';
                   if (answered) {
-                    if (oi === q.answerIndex) cls = 'border-green-500 bg-green-500/10 text-green-400';
-                    else if (answers[i] === oi) cls = 'border-red-500 bg-red-500/10 text-red-400';
-                    else cls = 'border-zinc-800 text-zinc-500';
+                    if (oi === q.answerIndex) cls = 'border-moss bg-moss/10 text-bone';
+                    else if (answers[i] === oi) cls = 'border-rust bg-rust/10 text-bone';
+                    else cls = 'border-ash/40 text-dust/50';
                   }
+                  const letter = String.fromCharCode(97 + oi);
                   return (
                     <button
                       key={oi}
                       type="button"
                       disabled={submitted}
                       onClick={() => select(i, oi)}
-                      className={`text-left px-4 py-2.5 rounded-lg border text-sm transition ${cls} ${submitted ? 'cursor-default' : 'cursor-pointer'}`}
+                      className={`text-left px-4 py-2.5 border text-sm transition flex items-start gap-3 font-body ${cls} ${submitted ? 'cursor-default' : 'cursor-pointer'}`}
                     >
-                      {opt}
+                      <span className="font-mono text-xs mt-0.5 opacity-60">{letter}.</span>
+                      <span>{opt}</span>
                     </button>
                   );
                 })}
               </div>
               {answered && (
-                <p className="text-sm text-zinc-400 mt-3 pl-4 border-l-2 border-zinc-700">{q.explanation}</p>
+                <p className="text-sm text-dust mt-3 pl-4 border-l-2 border-ash font-body">{q.explanation}</p>
               )}
             </div>
           );
@@ -113,19 +114,19 @@ export function Quiz({ questions, lessonId, onFinish }: QuizProps) {
       </div>
 
       {!submitted && (
-        <div className="mt-6 flex gap-2">
+        <div className="mt-6 flex gap-0">
           <input
             value={name}
             onChange={(e) => setName(e.target.value.slice(0, 24))}
             placeholder="name for leaderboard (optional)"
-            className="flex-1 px-4 py-2.5 rounded-lg bg-zinc-950 border border-zinc-700 text-white text-sm placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="flex-1 px-4 py-2.5 bg-ink border border-ash text-bone text-sm font-body placeholder-dust/50 focus:outline-none focus:border-ember"
           />
           <button
             onClick={submit}
             disabled={saving || answers.some((a) => a === null)}
-            className="px-6 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm disabled:opacity-40"
+            className="px-6 py-2.5 bg-ember text-ink font-display font-bold text-sm disabled:opacity-30 disabled:cursor-not-allowed hover:bg-ember/90 transition-colors"
           >
-            {saving ? 'Grading...' : 'Submit answers'}
+            {saving ? '...' : 'SUBMIT'}
           </button>
         </div>
       )}

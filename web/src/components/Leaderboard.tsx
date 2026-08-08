@@ -21,23 +21,27 @@ export function Leaderboard() {
 
   if (!rows.length) return null;
 
-  const medals = ['1st', '2nd', '3rd'];
-
   return (
-    <div className="bg-zinc-900 rounded-xl p-6 border border-zinc-800">
-      <h3 className="text-lg font-semibold text-white mb-4">Leaderboard</h3>
-      <ol className="space-y-2">
+    <div className="bg-coal border border-ash p-5">
+      <div className="flex items-center gap-2 mb-4">
+        <span className="font-mono text-xs text-dust uppercase tracking-wider">leaderboard</span>
+        <div className="h-px flex-1 bg-ash/60" />
+      </div>
+      <ol className="space-y-1">
         {rows.map((r, i) => (
           <li
             key={r.username}
-            className="flex items-center justify-between px-4 py-2.5 rounded-lg bg-zinc-950/60 border border-zinc-800"
+            className="flex items-center justify-between px-3 py-2.5 hover:bg-slag/50 transition-colors"
           >
             <span className="flex items-center gap-3">
-              <span className="w-6 text-center">{medals[i] ?? <span className="text-zinc-500">{i + 1}</span>}</span>
-              <span className="text-zinc-200 font-medium">{r.username}</span>
+              <span className={`font-mono text-xs w-5 text-right ${i < 3 ? 'text-ember' : 'text-dust/50'}`}>
+                {i + 1}
+              </span>
+              <span className="text-bone font-medium text-sm">{r.username}</span>
             </span>
-            <span className="text-sm text-zinc-400">
-              {r.totalCorrect}/{r.totalAnswered} · {r.submissions}x
+            <span className="font-mono text-xs text-dust">
+              {r.totalCorrect}/{r.totalAnswered}
+              <span className="text-dust/40 ml-2">{r.submissions}x</span>
             </span>
           </li>
         ))}
