@@ -93,6 +93,20 @@ export default function Home() {
         {lesson && (
           <section className="mt-14 grid lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-8">
+              <button
+                onClick={() => {
+                  setLesson(null);
+                  setError('');
+                  document.getElementById('course-library')?.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white transition text-sm font-medium"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M19 12H5" />
+                  <path d="M12 19l-7-7 7-7" />
+                </svg>
+                Back
+              </button>
               <div>
                 <h2 className="text-3xl font-semibold text-white">{lesson.title}</h2>
                 {lesson.tagline && <p className="text-zinc-500 mt-1">{lesson.tagline}</p>}
@@ -127,7 +141,7 @@ export default function Home() {
           </section>
         )}
 
-        <section className="mt-16">
+        <section id="course-library" className="mt-16">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-semibold text-white">Course Library</h2>
             <span className="text-sm text-zinc-500">{library.length} lessons</span>
