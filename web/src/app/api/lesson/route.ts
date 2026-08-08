@@ -5,6 +5,7 @@ import { Lesson, LessonScene, QuizQuestion } from '@/types/lesson';
 import { curatedLessons, findCuratedLesson } from '@/content/lessons';
 import { cacheGet, cacheSet } from '@/lib/cache';
 import { narrateScenes } from '@/lib/tts';
+import { retrieveContext, isZeropsRelated } from '@/lib/rag';
 import { eq } from 'drizzle-orm';
 
 function curatedToLesson(cl: (typeof curatedLessons)[number]): Lesson {
@@ -23,12 +24,31 @@ function attachQuiz(cl: (typeof curatedLessons)[number]): { quiz?: QuizQuestion[
 }
 
 /**
- * Generate a structured lesson via Groq LLM (llama-3.3-70b-versatile).
- * Groq's API is OpenAI-compatible — same chat completions shape.
+ * Remotion design guidance injected into the LLM system prompt.
+ * This helps the LLM generate scene descriptions that translate well
+ * into animated video compositions — even with a less powerful model.
+ */
+const REMOTION_DESIGN_PROMPT = `VIDEO DESIGN RULES (for Remotion animated composition):
+- Each scene has: a short title (max 5 words), narration text (max 35 words, conversational tone), and optional code snippet (max 120 chars).
+- Write narration as spoken English — first person, active voice, like a tutor explaining to a student.
+- Keep scenes to 2-3 max for a tight, focused lesson.
+- Code snippets should be real Zerops YAML or CLI commands, not pseudocode.
+- Structure each scene as a self-contained teaching moment with a clear takeaway.`;
+
+/**
+ * Generate a structured lesson via Groq LLM with RAG context.
+ * Retrieves relevant Zerops documentation chunks and injects them
+ * into the prompt so the LLM grounds its answer in real docs.
  */
 async function generateWithGroq(query: string): Promise<Lesson | null> {
   const key = process.env.GROQ_API_KEY;
   if (!key) return null;
+
+  // RAG: retrieve relevant documentation chunks
+  const contextChunks = retrieveContext(query, 4);
+  const contextText = contextChunks
+    .map((c) => `--- ${c.title} (${c.url}) ---\n${c.content}`)
+    .join('\n\n');
 
   try {
     const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -39,19 +59,28 @@ async function generateWithGroq(query: string): Promise<Lesson | null> {
       },
       body: JSON.stringify({
         model: 'llama-3.3-70b-versatile',
-        temperature: 0.7,
-        max_tokens: 1200,
+        temperature: 0.6,
+        max_tokens: 1500,
         messages: [
           {
             role: 'system',
-            content:
-              'You are an expert on Zerops (zerops.io), a developer-first deployment platform. Create short interactive lessons. Return ONLY valid JSON, no markdown fences, no preamble.',
+            content: `You are an expert tutor on Zerops (zerops.io), a developer-first deployment platform. You create short, animated video lessons.
+
+Use ONLY the provided documentation context to answer accurately. If the context doesn't cover the question, say so honestly.
+
+${REMOTION_DESIGN_PROMPT}
+
+Return ONLY valid JSON, no markdown fences, no preamble. Format:
+{"title":"...","scenes":[{"title":"...","text":"...","code":"..."}]}`,
           },
           {
             role: 'user',
-            content: `A user asks: "${query}". Create a lesson with 2-4 scenes. Return JSON:
-{"title":"...","scenes":[{"title":"...","text":"...","code":"..."}]}
-Rules: titles max 5 words, text max 40 words, code optional and short (<150 chars). If not a Zerops/cloud topic, return title "Not a Zerops topic".`,
+            content: `User question: "${query}"
+
+Relevant Zerops documentation:
+${contextText}
+
+Create a lesson answering this question. Ground your answer in the documentation above.`,
           },
         ],
       }),
@@ -85,6 +114,25 @@ Rules: titles max 5 words, text max 40 words, code optional and short (<150 char
     console.error('Groq LLM error', e);
     return null;
   }
+}
+
+/**
+ * Polite refusal lesson for non-Zerops questions.
+ */
+function offTopicLesson(query: string): Lesson {
+  return {
+    id: 'off-topic',
+    query,
+    title: 'Not a Zerops Topic',
+    scenes: [
+      {
+        title: 'We focus on Zerops',
+        text: 'Zerops Academy covers Zerops and cloud deployment topics — zerops.yaml, services, scaling, databases, caching, cron, networking, and the ZCP agent platform. Ask me about any of those and I will create a full animated lesson with narration.',
+        durationInFrames: 180,
+      },
+    ],
+    createdAt: new Date().toISOString(),
+  };
 }
 
 function fallbackLesson(query: string): Lesson {
@@ -166,11 +214,17 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ...lesson, ...attachQuiz(curated), slug: curated.slug });
   }
 
-  // 2) AI generation via Groq LLM for anything else
+  // 2) Topic guard — politely refuse non-Zerops questions
+  if (!isZeropsRelated(q)) {
+    const lesson = offTopicLesson(q);
+    return NextResponse.json(lesson);
+  }
+
+  // 3) AI generation via Groq LLM with RAG context
   const generated = await generateWithGroq(q);
   let lesson = generated ?? fallbackLesson(q);
 
-  // 3) Generate TTS narration for each scene via Groq TTS (parallel)
+  // 4) Generate TTS narration for each scene via Groq TTS
   try {
     lesson.scenes = await narrateScenes(lesson.scenes, lesson.id);
   } catch (e) {

@@ -68,12 +68,11 @@ describe('POST /api/lesson content', () => {
     expect((await res.json()).title).toBe('ZCP: AI Agents on Real Infra');
   });
 
-  it('returns a fallback lesson for an unknown topic', async () => {
+  it('returns an off-topic lesson for a non-Zerops query', async () => {
     const res = await POST(makeRequest({ query: 'how to bake a cake' }));
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body.title).toBe('Zerops Overview');
-    expect(body.id).toBe('fallback');
-    expect(body.scenes.length).toBe(2);
+    expect(body.title).toBe('Not a Zerops Topic');
+    expect(body.id).toBe('off-topic');
   });
 });
