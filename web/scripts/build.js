@@ -28,6 +28,15 @@ const standaloneDir = path.join(webDir, 'build', 'standalone');
 console.log('Running next build...');
 execSync('next build', { stdio: 'inherit', cwd: webDir });
 
+console.log('Rendering curated lesson videos...');
+try {
+  execSync('node scripts/render-videos.js', { stdio: 'inherit', cwd: webDir });
+} catch (e) {
+  // Video rendering is best-effort at build time; if headless Chrome is
+  // unavailable the app still works (client player fallback for all lessons).
+  console.warn('render-videos failed, continuing without pre-rendered videos:', e.message);
+}
+
 console.log('Preparing dist/ for deploy...');
 rmRecursive(distDir);
 copyRecursive(standaloneDir, distDir);

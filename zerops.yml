@@ -2,7 +2,7 @@ zerops:
   - setup: app
     build:
       base: nodejs@24
-      os: alpine
+      os: ubuntu
       buildCommands:
         - cd web && npm ci --legacy-peer-deps && npm run build
         - cd web && npm test
@@ -19,7 +19,7 @@ zerops:
         retryPeriod: 10s
     run:
       base: nodejs@24
-      os: alpine
+      os: ubuntu
       initCommands:
         - node dist/migrate.cjs
       start: node dist/server.js

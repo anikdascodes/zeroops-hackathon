@@ -11,6 +11,8 @@ export interface Lesson {
   title: string;
   scenes: LessonScene[];
   createdAt: string;
+  /** Path to a pre-rendered MP4 for curated lessons (e.g. /videos/first-deploy.mp4) */
+  videoUrl?: string;
 }
 
 export interface QuizQuestion {

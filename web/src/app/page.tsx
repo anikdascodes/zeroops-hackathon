@@ -97,7 +97,12 @@ export default function Home() {
                 <h2 className="text-3xl font-semibold text-white">{lesson.title}</h2>
                 {lesson.tagline && <p className="text-zinc-500 mt-1">{lesson.tagline}</p>}
               </div>
-              <LessonPlayer scenes={lesson.scenes} lessonTitle={lesson.title} />
+              <LessonPlayer
+                scenes={lesson.scenes}
+                lessonTitle={lesson.title}
+                slug={lesson.slug ?? lesson.id}
+                videoUrl={lesson.videoUrl}
+              />
               <div className="bg-zinc-900 rounded-xl p-6 border border-zinc-800">
                 <h3 className="text-lg font-semibold mb-4 text-zinc-200">Lesson Script</h3>
                 <div className="space-y-4">

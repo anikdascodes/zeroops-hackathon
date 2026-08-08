@@ -13,6 +13,7 @@ function curatedToLesson(cl: (typeof curatedLessons)[number]): Lesson {
     title: cl.title,
     scenes: cl.scenes,
     createdAt: new Date(0).toISOString(),
+    videoUrl: `/videos/${cl.slug}.mp4`,
   };
 }
 
