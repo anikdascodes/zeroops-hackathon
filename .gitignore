@@ -10,6 +10,7 @@ web/out
 web/dist
 web/build
 dist
+*.tsbuildinfo
 
 # Logs
 *.log
