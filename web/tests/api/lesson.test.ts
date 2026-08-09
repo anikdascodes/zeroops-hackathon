@@ -16,6 +16,15 @@ vi.mock('@/db', () => ({
   },
 }));
 
+vi.mock('@/lib/cache', () => ({
+  cacheGet: vi.fn().mockResolvedValue(null),
+  cacheSet: vi.fn().mockResolvedValue(undefined),
+}));
+
+vi.mock('@/lib/tts', () => ({
+  narrateScenes: vi.fn().mockImplementation((scenes: any[]) => Promise.resolve(scenes)),
+}));
+
 beforeEach(() => {
   vi.spyOn(console, 'error').mockImplementation(() => {});
 });

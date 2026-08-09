@@ -12,6 +12,10 @@ vi.mock('@/db', () => ({
   },
 }));
 
+vi.mock('@/lib/cache', () => ({
+  cacheIncr: vi.fn().mockResolvedValue(1),
+}));
+
 beforeEach(() => {
   vi.spyOn(console, 'error').mockImplementation(() => {});
 });
