@@ -3,6 +3,9 @@ opencode.json
 .env
 .env.local
 
+# Presentation (local only, not pushed)
+presentation
+
 # Node
 web/node_modules
 web/.next
