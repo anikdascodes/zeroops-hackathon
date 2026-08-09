@@ -27,6 +27,14 @@ async function migrate() {
     );
   `);
 
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS audio_assets (
+      id TEXT PRIMARY KEY,
+      data TEXT NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
   await pool.end();
   console.log('Migration complete');
 }

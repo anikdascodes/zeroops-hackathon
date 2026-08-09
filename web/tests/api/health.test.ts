@@ -5,6 +5,9 @@ describe('GET /api/health', () => {
   it('returns 200 with status ok', async () => {
     const res = await GET();
     expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ status: 'ok' });
+    const body = await res.json();
+    expect(body.status).toBe('ok');
+    expect('groq' in body).toBe(true);
+    expect('db' in body).toBe(true);
   });
 });

@@ -325,7 +325,9 @@ export default function LessonComposition({
       {scenes.map((s, i) =>
         s.audioUrl ? (
           <Sequence key={`audio-${i}`} from={sceneStarts[i]} durationInFrames={s.durationInFrames + EXIT_FRAMES}>
-            <Audio src={staticFile(s.audioUrl.replace(/^\//, ''))} />
+            <Audio
+              src={s.audioUrl.startsWith('/api/') ? s.audioUrl : staticFile(s.audioUrl.replace(/^\//, ''))}
+            />
           </Sequence>
         ) : null
       )}

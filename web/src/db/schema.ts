@@ -18,6 +18,12 @@ export const scores = pgTable('scores', {
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 });
 
+export const audioAssets = pgTable('audio_assets', {
+  id: text('id').primaryKey(),
+  data: text('data').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+});
+
 export type LessonRow = typeof lessons.$inferSelect;
 export type LessonInsert = typeof lessons.$inferInsert;
 export type ScoreRow = typeof scores.$inferSelect;
